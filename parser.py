@@ -4,6 +4,9 @@ from pdfminer.pdfinterp import PDFResourceManager, PDFPageInterpreter
 from pdfminer.converter import PDFPageAggregator
 from pdfminer.layout import LAParams, LTTextBox, LTTextLine
 
+# unusual character in common title
+unusual_chars = '~@#$%^*()_+={}[];<>?/\|'
+
 class Parser(object):
     """pdf Parser"""
     def __init__(self, pdf_fn, pdf_pwd = ''):
@@ -33,25 +36,22 @@ class Parser(object):
                         if isinstance(lt_obj, LTTextBox) \
                         or isinstance(lt_obj, LTTextLine):
                             text = lt_obj.get_text().strip()
-                            if not text:    continue
+                            if not 0 < len(text) < 200:    continue
                             num_lines = text.count('\n') + 1
-                            # feature: height of text box
-                            height = lt_obj.height / num_lines
+                            # feature: approximate font size
+                            font_size = lt_obj.height*lt_obj.width / len(text)
                             # feature: page where text locates
                             page_decay = pow(0.9, i)
-                            # feature: valid character ratio
-                            char_num, length = 0, 0
+                            # feature: unusual character ratio
+                            unusual_num = 0
                             for c in text.lower():
-                                if c == ' ' or c == '\n':
-                                    continue
-                                if 'a' <= c <= 'z':
-                                    char_num += 1
-                                length += 1
-                            char_ratio = float(char_num) / length
+                                if c in unusual_chars:
+                                    unusual_num += 1
+                            unusual_ratio = float(unusual_num) / len(text)
                             # final score
-                            score = height * page_decay * char_ratio
-
+                            score = font_size * page_decay * (1-unusual_ratio)
                             if score > max_score:
+                                # print text, score, font_size , page_decay , (1-unusual_ratio)
                                 self.title, max_score = text, score
             else:
                 print 'this pdf is not extractable'
@@ -67,3 +67,5 @@ for fn in os.listdir(path):
         print '#', fn
         print Parser(path+fn).get_title()
         print
+
+# print Parser('var\\Blind Color Decomposition of Histological.pdf').get_title()
