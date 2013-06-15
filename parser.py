@@ -51,7 +51,6 @@ class Parser(object):
                             # final score
                             score = font_size * page_decay * (1-unusual_ratio)
                             if score > max_score:
-                                # print text, score, font_size , page_decay , (1-unusual_ratio)
                                 self.title, max_score = text, score
             else:
                 print 'this pdf is not extractable'
@@ -61,11 +60,10 @@ class Parser(object):
         title = ' '.join([s for s in title.split(' ') if s])
         return title
 
-path = 'var\\'
-for fn in os.listdir(path):
-    if fn.endswith('.pdf'):
-        print '#', fn
-        print Parser(path+fn).get_title()
-        print
-
-# print Parser('var\\Blind Color Decomposition of Histological.pdf').get_title()
+if __name__ == '__main__':
+    path = 'var\\'
+    for fn in os.listdir(path):
+        if fn.endswith('.pdf'):
+            print '#', fn
+            print Parser(path+fn).get_title()
+            print
